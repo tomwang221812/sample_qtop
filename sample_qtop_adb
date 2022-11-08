@@ -1,0 +1,361 @@
+#!/bin/bash
+
+export VERBOSE=0
+source ./simple_curses.sh
+
+export DEVICE_SERIAL='10.136.8.45:5555'
+
+export target_cpu_debug_path='/sys/devices/system/cpu'
+
+function init() {
+    echo '(**) Mount debug partition'
+    adb -s ${DEVICE_SERIAL} wait-for-device root
+    adb -s ${DEVICE_SERIAL} wait-for-device remount
+    adb -s ${DEVICE_SERIAL} wait-for-device root
+    adb -s ${DEVICE_SERIAL} shell mount -t debugfs none /sys/kernel/debug
+    echo '(**) Debug mounted...'
+}
+
+function get_qrb5165_cpu_clk_max() {
+
+    scale=2
+    pre=1000000
+
+    # Kyro 585 Prime @ 2.84GHz
+    export cpu_clk_cpu0_max=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu7/cpufreq/scaling_max_freq | tr -d '\r\n')
+    export cpu_clk_cpu0_max_format=$(bc <<< "scale=$scale; $cpu_clk_cpu0_max / $pre")
+
+    # Kyro 585 Gold @ 2.42GHz
+    export cpu_clk_cpu1_max=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu4/cpufreq/scaling_max_freq | tr -d '\r\n')
+    export cpu_clk_cpu1_max_format=$(bc <<< "scale=$scale; $cpu_clk_cpu1_max / $pre")
+    export cpu_clk_cpu2_max=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu5/cpufreq/scaling_max_freq | tr -d '\r\n')
+    export cpu_clk_cpu2_max_format=$(bc <<< "scale=$scale; $cpu_clk_cpu2_max / $pre")
+    export cpu_clk_cpu3_max=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu6/cpufreq/scaling_max_freq | tr -d '\r\n')
+    export cpu_clk_cpu3_max_format=$(bc <<< "scale=$scale; $cpu_clk_cpu3_max / $pre")
+
+    # Kyro 585 Silver @ 1.80GHz
+    export cpu_clk_cpu4_max=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu0/cpufreq/scaling_max_freq | tr -d '\r\n')
+    export cpu_clk_cpu4_max_format=$(bc <<< "scale=$scale; $cpu_clk_cpu4_max / $pre")
+    export cpu_clk_cpu5_max=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu1/cpufreq/scaling_max_freq | tr -d '\r\n')
+    export cpu_clk_cpu5_max_format=$(bc <<< "scale=$scale; $cpu_clk_cpu5_max / $pre")
+    export cpu_clk_cpu6_max=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu2/cpufreq/scaling_max_freq | tr -d '\r\n')
+    export cpu_clk_cpu6_max_format=$(bc <<< "scale=$scale; $cpu_clk_cpu6_max / $pre")
+    export cpu_clk_cpu7_max=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu3/cpufreq/scaling_max_freq | tr -d '\r\n')
+    export cpu_clk_cpu7_max_format=$(bc <<< "scale=$scale; $cpu_clk_cpu7_max / $pre")
+
+}
+
+function get_qrb5165_cpu_clk_min() {
+
+    scale=2
+    pre=1000000
+
+    # Kyro 585 Prime @ 2.84GHz
+    export cpu_clk_cpu0_min=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu7/cpufreq/scaling_min_freq | tr -d '\r\n')
+    export cpu_clk_cpu0_min_format=$(bc <<< "scale=$scale; $cpu_clk_cpu0_min / $pre")
+
+    # Kyro 585 Gold @ 2.42GHz
+    export cpu_clk_cpu1_min=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu4/cpufreq/scaling_min_freq | tr -d '\r\n')
+    export cpu_clk_cpu1_min_format=$(bc <<< "scale=$scale; $cpu_clk_cpu1_min / $pre")
+    export cpu_clk_cpu2_min=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu5/cpufreq/scaling_min_freq | tr -d '\r\n')
+    export cpu_clk_cpu2_min_format=$(bc <<< "scale=$scale; $cpu_clk_cpu2_min / $pre")
+    export cpu_clk_cpu3_min=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu6/cpufreq/scaling_min_freq | tr -d '\r\n')
+    export cpu_clk_cpu3_min_format=$(bc <<< "scale=$scale; $cpu_clk_cpu3_min / $pre")
+
+    # Kyro 585 Silver @ 1.80GHz
+    export cpu_clk_cpu4_min=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu0/cpufreq/scaling_min_freq | tr -d '\r\n')
+    export cpu_clk_cpu4_min_format=$(bc <<< "scale=$scale; $cpu_clk_cpu4_min / $pre")
+    export cpu_clk_cpu5_min=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu1/cpufreq/scaling_min_freq | tr -d '\r\n')
+    export cpu_clk_cpu5_min_format=$(bc <<< "scale=$scale; $cpu_clk_cpu5_min / $pre")
+    export cpu_clk_cpu6_min=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu2/cpufreq/scaling_min_freq | tr -d '\r\n')
+    export cpu_clk_cpu6_min_format=$(bc <<< "scale=$scale; $cpu_clk_cpu6_min / $pre")
+    export cpu_clk_cpu7_min=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu3/cpufreq/scaling_min_freq | tr -d '\r\n')
+    export cpu_clk_cpu7_min_format=$(bc <<< "scale=$scale; $cpu_clk_cpu7_min / $pre")
+
+}
+
+function get_qrb5165_gpu_clk_max() {
+
+    scale=2
+    pre=1000000
+
+    export gpu_clk_opengl_core_max=$(adb -s ${DEVICE_SERIAL} shell cat /sys/class/kgsl/kgsl-3d0/max_gpuclk | tr -d '\r\n')
+    export gpu_clk_opengl_core_max_format=$(bc <<< "scale=$scale; $gpu_clk_opengl_core_max / $pre")
+}
+
+function get_qrb5165_gpu_clk_min() {
+    export gpu_clk_opengl_core_min=$(adb -s ${DEVICE_SERIAL} shell cat /sys/class/kgsl/kgsl-3d0/min_clock_mhz | tr -d '\r\n')
+}
+
+function get_qrb5165_cpu_clk() {
+    scale=2
+    pre=1000000
+
+    # Kyro 585 Prime @ 2.84GHz
+    export cpu_clk_cpu0=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu7/cpufreq/scaling_cur_freq | tr -d '\r\n')
+    export cpu_clk_cpu0_format=$(bc <<< "scale=$scale; $cpu_clk_cpu0 / $pre")
+
+    # Kyro 585 Gold @ 2.42GHz
+    export cpu_clk_cpu1=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu4/cpufreq/scaling_cur_freq | tr -d '\r\n')
+    export cpu_clk_cpu1_format=$(bc <<< "scale=$scale; $cpu_clk_cpu1 / $pre")
+    export cpu_clk_cpu2=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu5/cpufreq/scaling_cur_freq | tr -d '\r\n')
+    export cpu_clk_cpu2_format=$(bc <<< "scale=$scale; $cpu_clk_cpu2 / $pre")
+    export cpu_clk_cpu3=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu6/cpufreq/scaling_cur_freq | tr -d '\r\n')
+    export cpu_clk_cpu3_format=$(bc <<< "scale=$scale; $cpu_clk_cpu3 / $pre")
+
+    # Kyro 585 Silver @ 1.80GHz
+    export cpu_clk_cpu4=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu0/cpufreq/scaling_cur_freq | tr -d '\r\n')
+    export cpu_clk_cpu4_format=$(bc <<< "scale=$scale; $cpu_clk_cpu4 / $pre")
+    export cpu_clk_cpu5=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu1/cpufreq/scaling_cur_freq | tr -d '\r\n')
+    export cpu_clk_cpu5_format=$(bc <<< "scale=$scale; $cpu_clk_cpu5 / $pre")
+    export cpu_clk_cpu6=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu2/cpufreq/scaling_cur_freq | tr -d '\r\n')
+    export cpu_clk_cpu6_format=$(bc <<< "scale=$scale; $cpu_clk_cpu6 / $pre")
+    export cpu_clk_cpu7=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu3/cpufreq/scaling_cur_freq | tr -d '\r\n')
+    export cpu_clk_cpu7_format=$(bc <<< "scale=$scale; $cpu_clk_cpu7 / $pre")
+
+}
+
+function get_qrb5165_npu_clk() {
+    scale=2
+    pre=1000000
+
+    # Core
+    export npu_core_clk_curr=$(adb -s ${DEVICE_SERIAL} shell cat /sys/kernel/debug/clk/npu_cc_core_clk/clk_measure | tr -d '\r\n')
+    export npu_core_clk_curr_format=$(bc <<< "scale=$scale; $npu_cp_clk_curr / $pre")
+
+    # Control Processor
+    export npu_cp_clk_curr=$(adb -s ${DEVICE_SERIAL} shell cat /sys/kernel/debug/clk/npu_cc_core_clk/clk_measure | tr -d '\r\n')
+    export npu_cp_clk_curr_format=$(bc <<< "scale=$scale; $npu_cp_clk_curr / $pre")
+    export npu_cp_clk_vote=$(adb -s ${DEVICE_SERIAL} shell cat /sys/kernel/debug/clk/npu_cc_core_clk/clk_rate | tr -d '\r\n')
+    export npu_cp_clk_vote_format=$(bc <<< "scale=$scale; $npu_cp_clk_vote / $pre")
+
+    # Data Plan Engine (DP)
+    export npu_dp0_clk_curr=$(adb -s ${DEVICE_SERIAL} shell cat /sys/kernel/debug/clk/npu_cc_cal_hm0_clk/clk_measure | tr -d '\r\n')
+    export npu_dp0_clk_curr_format=$(bc <<< "scale=$scale; $npu_dp0_clk_curr / $pre")
+    export npu_dp0_clk_vote=$(adb -s ${DEVICE_SERIAL} shell cat /sys/kernel/debug/clk/npu_cc_cal_hm0_clk/clk_rate | tr -d '\r\n')
+    export npu_dp0_clk_vote_format=$(bc <<< "scale=$scale; $npu_dp0_clk_vote / $pre")
+    export npu_dp1_clk_curr=$(adb -s ${DEVICE_SERIAL} shell cat /sys/kernel/debug/clk/npu_cc_cal_hm1_clk/clk_measure | tr -d '\r\n')
+    export npu_dp1_clk_curr_format=$(bc <<< "scale=$scale; $npu_dp1_clk_curr / $pre")
+    export npu_dp1_clk_vote=$(adb -s ${DEVICE_SERIAL} shell cat /sys/kernel/debug/clk/npu_cc_cal_hm1_clk/clk_rate | tr -d '\r\n')
+    export npu_dp1_clk_vote_format=$(bc <<< "scale=$scale; $npu_dp1_clk_vote / $pre")
+
+    # Power Level
+    export npu_power_level=$(adb -s ${DEVICE_SERIAL} shell cat /sys/kernel/debug/npu/pwr_level | tr -d '\r\n')
+
+    # DSP
+    export npu_dsp_axi_curr=$(adb -s ${DEVICE_SERIAL} shell cat /sys/kernel/debug/clk/npu_cc_dsp_axi_clk/clk_measure | tr -d '\r\n')
+    export npu_dsp_axi_curr_format=$(bc <<< "scale=$scale; $npu_dsp_axi_curr / $pre")
+    export npu_dsp_ahbm_curr=$(adb -s ${DEVICE_SERIAL} shell cat /sys/kernel/debug/clk/npu_cc_dsp_ahbm_clk/clk_measure | tr -d '\r\n')
+    export npu_dsp_ahbm_curr_format=$(bc <<< "scale=$scale; $npu_dsp_ahbm_curr / $pre")
+    export npu_dsp_ahbs_curr=$(adb -s ${DEVICE_SERIAL} shell cat /sys/kernel/debug/clk/npu_cc_dsp_ahbs_clk/clk_measure | tr -d '\r\n')
+    export npu_dsp_ahbs_curr_format=$(bc <<< "scale=$scale; $npu_dsp_ahbs_curr / $pre")
+
+    # NoC
+    export npu_noc_ahb_curr=$(adb -s ${DEVICE_SERIAL} shell cat /sys/kernel/debug/clk/npu_cc_noc_ahb_clk/clk_measure | tr -d '\r\n')
+    export npu_noc_ahb_curr_format=$(bc <<< "scale=$scale; $npu_dsp_axi_curr / $pre")
+    export npu_noc_axi_curr=$(adb -s ${DEVICE_SERIAL} shell cat /sys/kernel/debug/clk/npu_cc_noc_axi_clk/clk_measure | tr -d '\r\n')
+    export npu_noc_axi_curr_format=$(bc <<< "scale=$scale; $npu_dsp_ahbm_curr / $pre")
+    export npu_noc_dma_curr=$(adb -s ${DEVICE_SERIAL} shell cat /sys/kernel/debug/clk/npu_cc_noc_dma_clk/clk_measure | tr -d '\r\n')
+    export npu_noc_dma_curr_format=$(bc <<< "scale=$scale; $npu_dsp_ahbs_curr / $pre")
+}
+
+function get_qrb5165_cdsp_clk() {
+
+    # sysMonApp
+
+    # SNoC: System Network on Chip
+    # BIMC: Bus Integrated Memory Controller
+    # MemNoc: Memory Network on Chip
+
+    export cdsp_clk_core='Empty'
+    export cdsp_clk_snoc_vote='Empty'
+    export cdsp_clk_snoc_curr='Empty'
+    export cdsp_clk_memnoc_vote='Empty'
+    export cdsp_clk_bimc_curr='Empty'
+
+    lines=$(adb -s ${DEVICE_SERIAL} shell /data/sysMonApp getstate --q6 cdsp)
+    while read -r line
+    do
+        if [[ $line == *"DSP Core clock"* ]]; then
+            export cdsp_clk_core=$(echo ${line#*:} | tr -d '\r\n')
+        fi
+        if [[ $line == *"SNOC Vote"* ]]; then
+            export cdsp_clk_snoc_vote_core=$(echo ${line#*:} | tr -d '\r\n')
+        fi
+        if [[ $line == *"MEMNOC Vote"* ]]; then
+            export cdsp_clk_memnoc_vote=$(echo ${line#*:} | tr -d '\r\n')
+        fi
+        if [[ $line == *"Measured SNOC"* ]]; then
+            export cdsp_clk_snoc_curr=$(echo ${line#*:} | tr -d '\r\n')
+        fi
+        if [[ $line == *"Measured BIMC"* ]]; then
+            export cdsp_clk_bimc_curr=$(echo ${line#*:} | tr -d '\r\n')
+        fi
+
+    done <<< "$lines"
+
+    now=$(date '+%d-%m-%y %T')
+
+    # /data/local/tmp/sysMonApp getPowerStats --q6 cdsp && sleep 300 && /data/local/tmp/sysMonApp getPowerStats --q6 cdsp &
+}
+
+function get_qrb5165_gpu_clk() {
+    scale=2
+    pre=1000000
+
+    export gpu_clk_opengl_core_curr=$(adb -s ${DEVICE_SERIAL} shell cat /sys/kernel/debug/clk/measure_only_gpu_cc_gx_gfx3d_clk/clk_measure | tr -d '\r\n')
+    export gpu_clk_opengl_core_curr_format=$(bc <<< "scale=$scale; $gpu_clk_opengl_core_curr / $pre")
+    # echo $gpu_clk_opengl_core_curr
+
+}
+
+function get_disk_usage() {
+    export disk_root_size=$(adb -s ${DEVICE_SERIAL} shell echo '$(df -h --output=size /)' | tr -d 'Size ' | tr -d '\r\n')
+    export disk_root_used=$(adb -s ${DEVICE_SERIAL} shell echo '$(df -h --output=used /)' | tr -d 'Used ' | tr -d '\r\n')
+    export disk_root_avaliable=$(adb -s ${DEVICE_SERIAL} shell echo '$(df -h --output=avail /) '| tr -d 'Avail ' | tr -d '\r\n')
+    export disk_root_usage=$(adb -s ${DEVICE_SERIAL} shell echo '$(df --output=pcent /)' | tr -d 'Use% ' | tr -d '\r\n')
+}
+
+function get_system_info() {
+    export os_description=$(adb -s ${DEVICE_SERIAL} shell lsb_release -d | tr -d 'Description:	' | tr -d '\r\n')
+    export kernel_version=$(adb -s ${DEVICE_SERIAL} shell uname -r | tr -d '\r\n')
+}
+
+function get_network_info() {
+    export hostname_ip=$(adb -s ${DEVICE_SERIAL} shell ifconfig eth0 | grep "inet " | awk '{print $2}' | tr -d '\r\n')
+    export hostname=$(adb -s ${DEVICE_SERIAL} shell hostname | tr -d '\r\n')
+    export iw_ssid=$(adb -s ${DEVICE_SERIAL} shell iwgetid -r | tr -d '\r\n')
+}
+
+function get_top_process() {
+    lvar=$1
+    top_process_result=$(adb -s ${DEVICE_SERIAL} shell ps ax -o pid,rss,pcpu,ucmd --sort=-cpu,-rss | sed -n "$lvar,$lvar p" | awk '{printf "%s: %sM:  %s%%" , $4, $2/1024, $3 }' | tr -d '\r\n')
+    echo "$top_process_result"
+}
+
+init
+get_qrb5165_cpu_clk_max
+get_qrb5165_cpu_clk_min
+get_qrb5165_gpu_clk_max
+get_qrb5165_gpu_clk_min
+get_system_info
+
+main() {
+    get_qrb5165_cpu_clk
+    get_qrb5165_cdsp_clk
+    get_qrb5165_npu_clk
+    get_qrb5165_gpu_clk
+    get_disk_usage
+    get_network_info
+
+    window "System Information" "green" "33%"
+        append_tabbed "TIME,$(date '+%Y/%m/%d %T')" 2 ','
+        addsep
+        append_tabbed "ADB,$DEVICE_SERIAL" 2 ','
+        append_tabbed "OS:$os_description" 2
+        append_tabbed "Kernel:$kernel_version" 2
+    endwin
+
+    window "Top 5 Process" "green" "33%"
+        for i in `seq 2 6`; do
+            append_tabbed "$(($i-2)) $(get_top_process $i | tr -d '\r\n')" 3
+        done
+    endwin
+
+    window "Network" "green" "17%"
+        append_tabbed "IP:$hostname_ip" 2
+        append_tabbed "hostname:$hostname" 2
+        append_tabbed "WIFI SSID:$iw_ssid" 2
+    endwin
+
+    window "Root Disk Usage" "green" "17%"
+        append_tabbed "Size:$disk_root_size" 2
+        append_tabbed "Used:$disk_root_used" 2
+        append_tabbed "Avaliable:$disk_root_avaliable" 2
+        vumeter "$disk_root_usage%" 28 $disk_root_usage 100 "green" "red" "transparent"
+    endwin
+
+    col_right
+    move_up
+
+    window "CPU (Kyro585)" "green" "33%"
+        append_tabbed ":Current:Min:Max" 4
+        append_tabbed "Prime  0:$cpu_clk_cpu0_format GHz:$cpu_clk_cpu0_min_format GHz:$cpu_clk_cpu0_max_format GHz" 4
+        append_tabbed "Gold   0:$cpu_clk_cpu1_format GHz:$cpu_clk_cpu1_min_format GHz:$cpu_clk_cpu1_max_format GHz" 4
+        append_tabbed "Gold   1:$cpu_clk_cpu2_format GHz:$cpu_clk_cpu2_min_format GHz:$cpu_clk_cpu2_max_format GHz" 4
+        append_tabbed "Gold   2:$cpu_clk_cpu3_format GHz:$cpu_clk_cpu3_min_format GHz:$cpu_clk_cpu3_max_format GHz" 4
+        append_tabbed "Silver 0:$cpu_clk_cpu4_format GHz:$cpu_clk_cpu4_min_format GHz:$cpu_clk_cpu4_max_format GHz" 4
+        append_tabbed "Silver 1:$cpu_clk_cpu5_format GHz:$cpu_clk_cpu5_min_format GHz:$cpu_clk_cpu5_max_format GHz" 4
+        append_tabbed "Silver 2:$cpu_clk_cpu6_format GHz:$cpu_clk_cpu6_min_format GHz:$cpu_clk_cpu6_max_format GHz" 4
+        append_tabbed "Silver 3:$cpu_clk_cpu7_format GHz:$cpu_clk_cpu7_min_format GHz:$cpu_clk_cpu7_max_format GHz" 4  
+    endwin
+
+    window "GPU (Adreno 650)" "green" "33%"
+        append_tabbed ":Current:Min:Max" 4
+        append_tabbed "GPU0:$gpu_clk_opengl_core_curr_format MHz:$gpu_clk_opengl_core_min MHz:$gpu_clk_opengl_core_max_format MHz" 4
+    endwin
+
+    window "Hexagon 698 DSP V66 cDSP" "green" "33%"
+        append_tabbed "cDSP Core:SNoC SW Request:MEMNOC SW Request" 3
+        append_tabbed "$cdsp_clk_core:$cdsp_clk_snoc_vote_core:$cdsp_clk_memnoc_vote" 3
+        addsep
+        append_tabbed "SNOC Measured:BIMC Measured" 3
+        append_tabbed "$cdsp_clk_snoc_curr:$cdsp_clk_bimc_curr" 3
+    endwin
+
+    window "GPU Freq. Meter" "green" "33%"
+        vumeter "G $gpu_clk_opengl_core_curr_format MHz" 48 $gpu_clk_opengl_core_curr $gpu_clk_opengl_core_max "green" "red" "transparent"
+    endwin
+
+    window "CPU Big Freq. Meter" "green" "17%"
+        vumeter "P0 $cpu_clk_cpu0_format GHz" 20 $cpu_clk_cpu0 $cpu_clk_cpu0_max "green" "red" "transparent"
+        vumeter "G0 $cpu_clk_cpu1_format GHz" 20 $cpu_clk_cpu1 $cpu_clk_cpu1_max "green" "red" "transparent"
+        vumeter "G1 $cpu_clk_cpu2_format GHz" 20 $cpu_clk_cpu2 $cpu_clk_cpu2_max "green" "red" "transparent"
+        vumeter "G2 $cpu_clk_cpu3_format GHz" 20 $cpu_clk_cpu3 $cpu_clk_cpu3_max "green" "red" "transparent"
+    endwin
+
+    col_right
+    window "CPU Little Freq. Meter" "green" "16%"
+        vumeter "S0 $cpu_clk_cpu4_format GHz" 18 $cpu_clk_cpu4 $cpu_clk_cpu4_max "green" "red" "transparent"
+        vumeter "S1 $cpu_clk_cpu5_format GHz" 18 $cpu_clk_cpu5 $cpu_clk_cpu5_max "green" "red" "transparent"
+        vumeter "S2 $cpu_clk_cpu6_format GHz" 18 $cpu_clk_cpu6 $cpu_clk_cpu6_max "green" "red" "transparent"
+        vumeter "S3 $cpu_clk_cpu7_format GHz" 18 $cpu_clk_cpu7 $cpu_clk_cpu7_max "green" "red" "transparent"
+    endwin
+
+    col_right
+    move_up
+
+    window "NPU/HTA230" "green" "33%"
+        append "Control Processor"
+        addsep
+        append_tabbed "Measure:SW Request" 2
+        append_tabbed "$npu_cp_clk_curr_format Hz:$npu_cp_clk_vote_format Hz" 2
+        addsep
+        append "Data Plan (EXE + DMA + DBLC + CONTROL)"
+        addsep
+        append_tabbed ":DP0 Measured:DP0 SW Request:DP1 Measured:DP1 SW Request" 5
+        append_tabbed "Current:$npu_dp0_clk_curr_format MHz:$npu_dp0_clk_vote_format MHz:$npu_dp1_clk_curr_format MHz:$npu_dp1_clk_vote_format MHz" 5
+        vumeter "DP0" 55 $npu_dp0_clk_curr 1000000000 "green" "red" "transparent"
+        vumeter "DP1" 55 $npu_dp1_clk_curr 1000000000 "green" "red" "transparent"
+        addsep
+        append "Hexagon DSP"
+        addsep
+        append_tabbed "AXI:AHBM:AHBS" 3
+        append_tabbed "$npu_dsp_axi_curr_format MHz:$npu_dsp_ahbm_curr_format MHz:$npu_dsp_ahbs_curr_format MHz" 3
+        addsep
+        append "NoC (Network on Chip)"
+        addsep
+        append_tabbed "AHB:AXI:DMA" 3
+        append_tabbed "$npu_noc_ahb_curr_format MHz:$npu_noc_axi_curr_format MHz:$npu_noc_dma_curr_format MHz" 3
+    endwin
+    
+}
+
+main_loop -t 0.001
+#while true
+#do
+#  get_qrb5165_cpu_clk
+#  #get_qrb5165_npu_clk
+#  #get_qrb5165_cdsp_clk
+#  #get_qrb5165_gpu_clk
+#done
