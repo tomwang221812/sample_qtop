@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export VERBOSE=0
+export VERBOSE=1
 source ./simple_curses.sh
 
 which adb
@@ -10,9 +10,12 @@ export MINIDM_PATH=${HEXAGON_ROOT}/tools/debug/mini-dm/Ubuntu18/mini-dm
 export DEVICE_SERIAL=''
 
 export target_cpu_debug_path='/sys/devices/system/cpu'
+export use_minidm=false
+
+export seed=$(echo $RANDOM | md5sum | head -c 20; echo | tr -d '\r\n')
 
 function init() {
-
+    clear
     echo '(II) Checking Hexagon root folder'
     if [ -d "$HEXAGON_ROOT" ];
     then
@@ -21,9 +24,9 @@ function init() {
 	    echo "(EE) $HEXAGON_ROOT directory does not exist."
         exit
     fi
-    
-    adb devices
-    read -p "(==) Enter ADB device serial (Enter): " DEVICE_SERIAL
+
+    get_adb_device_as_options
+    get_minidm_device_as_options
 
     echo '(**) Mount debug partition'
     adb -s ${DEVICE_SERIAL} wait-for-device root
@@ -33,29 +36,130 @@ function init() {
     echo '(**) Debug mounted...'
 
     get_adb_devices
-    get_minidm_devices
     get_qrb5165_cpu_clk_max
     get_qrb5165_cpu_clk_min
     get_qrb5165_gpu_clk_max
     get_qrb5165_gpu_clk_min
     get_system_info
+
+    if [ "$use_minidm" = true ] ; 
+    then 
+        get_minidm_devices
+    fi
+}
+
+function get_adb_device_as_options() {
+    echo ""
+    echo "Choose which ADB device you want to connect"
+    adb_device_no=1
+    echo ""
+    for line in $(adb devices | tail -n +2 | tr -d '\tdevices' | head --lines=-1); 
+        do echo $((adb_device_no++))\) $line; 
+    done
+    echo "Q) Close the program"
+    echo ""
+    read -p ">>> Enter which device you want to connect [default=1]: " DEVICE_SERIAL
+    
+    if [ -z $DEVICE_SERIAL ]
+    then
+        DEVICE_SERIAL=1
+    fi
+
+    if [ $DEVICE_SERIAL = "Q" ] || [ $DEVICE_SERIAL = "q" ]
+    then
+        exit
+    fi
+
+    # Manually
+    if [ $DEVICE_SERIAL -ge $adb_device_no ] || [ $DEVICE_SERIAL -lt 1 ]
+    then
+        echo You choose $DEVICE_SERIAL which is not in options...
+        read -p ">>> Enter the serial manulally (Try [serial] or [ip]:[port]): " DEVICE_SERIAL
+        return
+    fi
+
+    # OKay
+    adb_device_no=1
+    for line in $(adb devices | tail -n +2 | tr -d '\tdevices' | head --lines=-1); 
+    do 
+        if [ $DEVICE_SERIAL -eq $((adb_device_no++)) ]
+        then
+            echo "(II) You choose $DEVICE_SERIAL which is $line"
+            export DEVICE_SERIAL=$line
+            return
+        fi
+    done
+}
+
+function get_minidm_device_as_options() {
+
+    if [[ $($MINIDM_PATH --devices | tail -n +4 | tr -d " " | tr -d '\r\n') ]];
+    then
+        echo '(II) Init mini-dm...'
+        use_minidm=true
+    else
+        echo '(!!) No USB device connect to host'
+        echo '(!!) mini-dm disabled!'
+        return
+    fi
+
+    echo ""
+    echo "Choose which mini-dm device you want to connect"
+    minidm_device_no=1
+    echo ""
+    for line in $($MINIDM_PATH --devices | tail -n +4 | tr -d " "); 
+    do 
+        echo $((minidm_device_no++))\) ${line#*USBPort:}
+    done
+    echo "N) Do not use mini-dm"
+    echo ""
+    read -p ">>> Enter which device you want to connect [default=1]: " minidm_usbport
+    
+    if [ -z $minidm_usbport ]
+    then
+        minidm_usbport=1
+    fi
+
+    if [ $minidm_usbport = "N" ] || [ $minidm_usbport = "n" ]
+    then
+        use_minidm=false
+        return
+    fi
+
+    # Manually
+    if [ $minidm_usbport -ge $minidm_device_no ] || [ $minidm_usbport -lt 1 ]
+    then
+        echo "(II) You choose $minidm_usbport which is not in options..."
+        read -p ">>> Enter the usbport manulally (Try [usbport no]]): " DEVICE_SERIAL
+        return
+    fi
+
+    # OKay
+    minidm_device_no=1
+    for line in $($MINIDM_PATH --devices | tail -n +4 | tr -d " "); 
+    do 
+        if [ $minidm_usbport -eq $((minidm_device_no++)) ]
+        then
+            echo You choose $DEVICE_SERIAL which is $line
+            export minidm_usbport=${line#*USBPort:}
+            return
+        fi
+    done
 }
 
 function get_adb_devices() {
-    adb devices | tail -n +2 | tr -d '\tdevices' | head --lines=-1 > /tmp/sample_qtop_adb_devices.log
+    adb devices | tail -n +2 | tr -d '\tdevices' | head --lines=-1 > /tmp/sample_qtop_adb_devices_$seed.log
 }
 
 function get_minidm_devices() {
-    $MINIDM_PATH --devices | tail -n +4 > /tmp/sample_qtop_minidm_devices.log
-    mdev=$($MINIDM_PATH --devices)
-    export minidm_first_usbport=${mdev#*USB Port: }
-    $MINIDM_PATH --usbport $minidm_first_usbport --msg-file /tmp/sample_qtop_minidm.log --filter_in "CDSP" > /tmp/sample_qtop_minidm_status.log &
+    $MINIDM_PATH --devices | tail -n +4 > /tmp/sample_qtop_minidm_devices_$seed.log
+    $MINIDM_PATH --usbport $minidm_usbport --msg-file /tmp/sample_qtop_minidm_$seed.log --filter_in "CDSP" > /tmp/sample_qtop_minidm_status_$seed.log &
 }
 trap 'trap - SIGTERM && kill 0' SIGINT SIGTERM EXIT
 
 function get_minidm_logs() {
-    lines=5
-    tail -n$lines /tmp/sample_qtop_minidm.log > /tmp/sample_qtop_minidm_log_lines.log
+    lines=8
+    tail -n$lines /tmp/sample_qtop_minidm_$seed.log > /tmp/sample_qtop_minidm_log_lines_$seed.log
 }
 
 function get_qrb5165_cpu_clk_max() {
@@ -277,7 +381,7 @@ function get_top_process() {
 
 function get_logcat_last_lines() {
     lines=5
-    adb -s ${DEVICE_SERIAL} logcat -t $lines | tail -n +2 > /tmp/sample_qtop_adb.log
+    adb -s ${DEVICE_SERIAL} logcat -t $lines | tail -n +2 > /tmp/sample_qtop_adb_$seed.log
 }
 
 init
@@ -291,10 +395,15 @@ main() {
     get_disk_usage
     get_network_info
     get_logcat_last_lines
-    get_minidm_logs
+    
+    if [ "$use_minidm" = true ] ; 
+    then 
+        get_minidm_logs 
+    fi
 
     window "System Information" "green" "22%"
         append_tabbed "TIME,$(date '+%Y/%m/%d %T')" 2 ',' "yellow"
+        append_tabbed "SEED:$seed" 2 ':' "yellow"
         addsep
         append_tabbed "ADB Serial,$DEVICE_SERIAL" 2 ','
         append_tabbed "Operating System:$os_description" 2
@@ -302,17 +411,20 @@ main() {
     endwin
 
     window "Connected ADB Devices" "green" "22%"
-        append_file /tmp/sample_qtop_adb_devices.log
+        append_file /tmp/sample_qtop_adb_devices_$seed.log
     endwin
 
-    window "Connected Mini-dm Devices" "green" "22%"
-        append_file /tmp/sample_qtop_minidm_devices.log
-        append "First Port is $minidm_first_usbport" "left" "yellow"
-        addsep
-        append "mini-dm status" "center" "green"
-        addsep
-        append_file /tmp/sample_qtop_minidm_status.log
-    endwin
+    if [ "$use_minidm" = true ] ; 
+    then 
+        window "Connected mini-dm Devices" "green" "22%"
+            append_file /tmp/sample_qtop_minidm_devices_$seed.log
+            append "Connected port is $minidm_usbport" "left" "yellow"
+            addsep
+            append "mini-dm status" "center" "green"
+            addsep
+            append_file /tmp/sample_qtop_minidm_status_$seed.log
+        endwin
+    fi
 
     window "Top 5 Process" "green" "22%"
         for i in `seq 2 6`; do
@@ -399,12 +511,15 @@ main() {
     move_up
 
     window "Logcat" "green" "45%"
-        append_file /tmp/sample_qtop_adb.log
+        append_file /tmp/sample_qtop_adb_$seed.log
     endwin
 
-    window "Minidm [/tmp/sample_qtop_minidm_log_lines]" "green" "45%"
-        append_file /tmp/sample_qtop_minidm_log_lines.log
-    endwin
+    if [ "$use_minidm" = true ] ;
+    then
+        window "mini-dm messages [/tmp/sample_qtop_minidm_log_lines_$seed.log]" "green" "45%"
+            append_file /tmp/sample_qtop_minidm_log_lines_$seed.log
+        endwin
+    fi
     
 }
 
