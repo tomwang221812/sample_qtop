@@ -2,7 +2,7 @@
 A sample tool to monitor system through adb
 
 # Preview
-
+![](https://github.com/tomwang221812/sample_qtop/blob/main/preview.png)
 
 # Requriment
   - Ubuntu Host
