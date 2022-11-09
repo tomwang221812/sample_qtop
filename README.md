@@ -8,7 +8,7 @@ A sample tool to monitor system through adb
   - Ubuntu Host
   - Hexagon SDK 4.5.0.3 under `$HOME/Qualcomm/Hexagon_SDK`
   - Android debug bridge (ADB) `sudo apt install adb`
-  - [Bash Simple Curses](https://github.com/metal3d/bashsimplecurse)
+  - [Bash Simple Curses](https://github.com/metal3d/bashsimplecurse) script `simple_curses.sh`
 
 # Install and Run
 1. Clone this repo
