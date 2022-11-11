@@ -158,7 +158,7 @@ function get_minidm_devices() {
 trap 'trap - SIGTERM && kill 0' SIGINT SIGTERM EXIT
 
 function get_minidm_logs() {
-    lines=8
+    lines=5
     tail -n$lines /tmp/sample_qtop_minidm_$seed.log > /tmp/sample_qtop_minidm_log_lines_$seed.log
 }
 
@@ -174,18 +174,23 @@ function get_qrb5165_cpu_clk_max() {
     # Kyro 585 Gold @ 2.42GHz
     export cpu_clk_cpu1_max=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu4/cpufreq/scaling_max_freq | tr -d '\r\n')
     export cpu_clk_cpu1_max_format=$(bc <<< "scale=$scale; $cpu_clk_cpu1_max / $pre")
+
     export cpu_clk_cpu2_max=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu5/cpufreq/scaling_max_freq | tr -d '\r\n')
     export cpu_clk_cpu2_max_format=$(bc <<< "scale=$scale; $cpu_clk_cpu2_max / $pre")
+
     export cpu_clk_cpu3_max=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu6/cpufreq/scaling_max_freq | tr -d '\r\n')
     export cpu_clk_cpu3_max_format=$(bc <<< "scale=$scale; $cpu_clk_cpu3_max / $pre")
 
     # Kyro 585 Silver @ 1.80GHz
     export cpu_clk_cpu4_max=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu0/cpufreq/scaling_max_freq | tr -d '\r\n')
     export cpu_clk_cpu4_max_format=$(bc <<< "scale=$scale; $cpu_clk_cpu4_max / $pre")
+
     export cpu_clk_cpu5_max=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu1/cpufreq/scaling_max_freq | tr -d '\r\n')
     export cpu_clk_cpu5_max_format=$(bc <<< "scale=$scale; $cpu_clk_cpu5_max / $pre")
+
     export cpu_clk_cpu6_max=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu2/cpufreq/scaling_max_freq | tr -d '\r\n')
     export cpu_clk_cpu6_max_format=$(bc <<< "scale=$scale; $cpu_clk_cpu6_max / $pre")
+
     export cpu_clk_cpu7_max=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu3/cpufreq/scaling_max_freq | tr -d '\r\n')
     export cpu_clk_cpu7_max_format=$(bc <<< "scale=$scale; $cpu_clk_cpu7_max / $pre")
 
@@ -237,27 +242,52 @@ function get_qrb5165_cpu_clk() {
     scale=2
     pre=1000000
 
+    # CPUSS
+    export cpu_ss_temp=$(adb -s ${DEVICE_SERIAL} shell cat /sys/class/thermal/thermal_zone6/temp | awk '{ printf "%.1f°C", ($1 / 1000) }')
+    # export cpu_ss_use=$(adb -s ${DEVICE_SERIAL} shell cat /proc/stat | grep 'cpu ' | awk '{print ($5*100)/($2+$3+$4+$5+$6+$7+$8+$9+$10)}' | awk '{ printf "%.1f%%", (100-$1) }')
+
     # Kyro 585 Prime @ 2.84GHz
     export cpu_clk_cpu0=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu7/cpufreq/scaling_cur_freq | tr -d '\r\n')
     export cpu_clk_cpu0_format=$(bc <<< "scale=$scale; $cpu_clk_cpu0 / $pre")
+    export cpu_clk_cpu0_temp=$(adb -s ${DEVICE_SERIAL} shell cat /sys/class/thermal/thermal_zone7/temp | awk '{ printf "%.1f°C", ($1 / 1000) }')
+    # export cpu_clk_cpu0_use=$(adb -s ${DEVICE_SERIAL} shell cat /proc/stat | grep cpu7 | awk '{print ($5*100)/($2+$3+$4+$5+$6+$7+$8+$9+$10)}' | awk '{ printf "%.1f%%", (100-$1) }')
 
     # Kyro 585 Gold @ 2.42GHz
     export cpu_clk_cpu1=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu4/cpufreq/scaling_cur_freq | tr -d '\r\n')
     export cpu_clk_cpu1_format=$(bc <<< "scale=$scale; $cpu_clk_cpu1 / $pre")
+    export cpu_clk_cpu1_temp=$(adb -s ${DEVICE_SERIAL} shell cat /sys/class/thermal/thermal_zone8/temp | awk '{ printf "%.1f°C", ($1 / 1000) }')
+    # export cpu_clk_cpu1_use=$(adb -s ${DEVICE_SERIAL} shell cat /proc/stat | grep cpu4 | awk '{print ($5*100)/($2+$3+$4+$5+$6+$7+$8+$9+$10)}' | awk '{ printf "%.1f%%", (100-$1) }')
+
     export cpu_clk_cpu2=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu5/cpufreq/scaling_cur_freq | tr -d '\r\n')
     export cpu_clk_cpu2_format=$(bc <<< "scale=$scale; $cpu_clk_cpu2 / $pre")
+    export cpu_clk_cpu2_temp=$(adb -s ${DEVICE_SERIAL} shell cat /sys/class/thermal/thermal_zone9/temp | awk '{ printf "%.1f°C", ($1 / 1000) }')
+    # export cpu_clk_cpu2_use=$(adb -s ${DEVICE_SERIAL} shell cat /proc/stat | grep cpu5 | awk '{print ($5*100)/($2+$3+$4+$5+$6+$7+$8+$9+$10)}' | awk '{ printf "%.1f%%", (100-$1) }')
+    
     export cpu_clk_cpu3=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu6/cpufreq/scaling_cur_freq | tr -d '\r\n')
     export cpu_clk_cpu3_format=$(bc <<< "scale=$scale; $cpu_clk_cpu3 / $pre")
+    export cpu_clk_cpu3_temp=$(adb -s ${DEVICE_SERIAL} shell cat /sys/class/thermal/thermal_zone10/temp | awk '{ printf "%.1f°C", ($1 / 1000) }')
+    # export cpu_clk_cpu3_use=$(adb -s ${DEVICE_SERIAL} shell cat /proc/stat | grep cpu6 | awk '{print ($5*100)/($2+$3+$4+$5+$6+$7+$8+$9+$10)}' | awk '{ printf "%.1f%%", (100-$1) }')
 
     # Kyro 585 Silver @ 1.80GHz
     export cpu_clk_cpu4=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu0/cpufreq/scaling_cur_freq | tr -d '\r\n')
     export cpu_clk_cpu4_format=$(bc <<< "scale=$scale; $cpu_clk_cpu4 / $pre")
+    export cpu_clk_cpu4_temp=$(adb -s ${DEVICE_SERIAL} shell cat /sys/class/thermal/thermal_zone1/temp | awk '{ printf "%.1f°C", ($1 / 1000) }')
+    # export cpu_clk_cpu4_use=$(adb -s ${DEVICE_SERIAL} shell cat /proc/stat | grep cpu0 | awk '{print ($5*100)/($2+$3+$4+$5+$6+$7+$8+$9+$10)}' | awk '{ printf "%.1f%%", (100-$1) }')
+
     export cpu_clk_cpu5=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu1/cpufreq/scaling_cur_freq | tr -d '\r\n')
     export cpu_clk_cpu5_format=$(bc <<< "scale=$scale; $cpu_clk_cpu5 / $pre")
+    export cpu_clk_cpu5_temp=$(adb -s ${DEVICE_SERIAL} shell cat /sys/class/thermal/thermal_zone2/temp | awk '{ printf "%.1f°C", ($1 / 1000) }')
+    # export cpu_clk_cpu5_use=$(adb -s ${DEVICE_SERIAL} shell cat /proc/stat | grep cpu1 | awk '{print ($5*100)/($2+$3+$4+$5+$6+$7+$8+$9+$10)}' | awk '{ printf "%.1f%%", (100-$1) }')
+
     export cpu_clk_cpu6=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu2/cpufreq/scaling_cur_freq | tr -d '\r\n')
     export cpu_clk_cpu6_format=$(bc <<< "scale=$scale; $cpu_clk_cpu6 / $pre")
+    export cpu_clk_cpu6_temp=$(adb -s ${DEVICE_SERIAL} shell cat /sys/class/thermal/thermal_zone3/temp | awk '{ printf "%.1f°C", ($1 / 1000) }')
+    # export cpu_clk_cpu6_use=$(adb -s ${DEVICE_SERIAL} shell cat /proc/stat | grep cpu2 | awk '{print ($5*100)/($2+$3+$4+$5+$6+$7+$8+$9+$10)}' | awk '{ printf "%.1f%%", (100-$1) }')
+
     export cpu_clk_cpu7=$(adb -s ${DEVICE_SERIAL} shell cat ${target_cpu_debug_path}/cpu3/cpufreq/scaling_cur_freq | tr -d '\r\n')
     export cpu_clk_cpu7_format=$(bc <<< "scale=$scale; $cpu_clk_cpu7 / $pre")
+    export cpu_clk_cpu7_temp=$(adb -s ${DEVICE_SERIAL} shell cat /sys/class/thermal/thermal_zone4/temp | awk '{ printf "%.1f°C", ($1 / 1000) }')
+    # export cpu_clk_cpu7_use=$(adb -s ${DEVICE_SERIAL} shell cat /proc/stat | grep cpu3 | awk '{print ($5*100)/($2+$3+$4+$5+$6+$7+$8+$9+$10)}' | awk '{ printf "%.1f%%", (100-$1) }')
 
 }
 
@@ -303,6 +333,9 @@ function get_qrb5165_npu_clk() {
     export npu_noc_axi_curr_format=$(bc <<< "scale=$scale; $npu_dsp_ahbm_curr / $pre")
     export npu_noc_dma_curr=$(adb -s ${DEVICE_SERIAL} shell cat /sys/kernel/debug/clk/npu_cc_noc_dma_clk/clk_measure | tr -d '\r\n')
     export npu_noc_dma_curr_format=$(bc <<< "scale=$scale; $npu_dsp_ahbs_curr / $pre")
+
+    # Sensor
+    export npu_ss_temp=$(adb -s ${DEVICE_SERIAL} shell cat /sys/class/thermal/thermal_zone23/temp | awk '{ printf "%.1f°C", ($1 / 1000) }')
 }
 
 function get_qrb5165_cdsp_clk() {
@@ -340,7 +373,7 @@ function get_qrb5165_cdsp_clk() {
 
     done <<< "$lines"
 
-    now=$(date '+%d-%m-%y %T')
+    export cdsp_ss_temp=$(adb -s ${DEVICE_SERIAL} shell cat /sys/class/thermal/thermal_zone22/temp | awk '{ printf "%.1f°C", ($1 / 1000) }')
 
     # /data/local/tmp/sysMonApp getPowerStats --q6 cdsp && sleep 300 && /data/local/tmp/sysMonApp getPowerStats --q6 cdsp &
 }
@@ -351,7 +384,8 @@ function get_qrb5165_gpu_clk() {
 
     export gpu_clk_opengl_core_curr=$(adb -s ${DEVICE_SERIAL} shell cat /sys/kernel/debug/clk/measure_only_gpu_cc_gx_gfx3d_clk/clk_measure | tr -d '\r\n')
     export gpu_clk_opengl_core_curr_format=$(bc <<< "scale=$scale; $gpu_clk_opengl_core_curr / $pre")
-    # echo $gpu_clk_opengl_core_curr
+    
+    export gpu_ss_temp=$(adb -s ${DEVICE_SERIAL} shell cat /sys/class/thermal/thermal_zone24/temp | awk '{ printf "%.1f°C", ($1 / 1000) }')
 
 }
 
@@ -365,6 +399,8 @@ function get_disk_usage() {
 function get_system_info() {
     export os_description=$(adb -s ${DEVICE_SERIAL} shell lsb_release -d | tr -d 'Description:	' | tr -d '\r\n')
     export kernel_version=$(adb -s ${DEVICE_SERIAL} shell uname -r | tr -d '\r\n')
+    export serial_number=$(adb -s ${DEVICE_SERIAL} shell cat /sys/bus/soc/devices/soc0/serial_number | awk '{ printf "0x%x", $1 }')
+    export testsig_installed=$(adb -s ${DEVICE_SERIAL} shell [ -f /usr/lib/rfsa/adsp/testsig-$serial_number.so ] && printf "%s" 'Installed' || printf "%s" 'Not Install')
 }
 
 function get_network_info() {
@@ -406,6 +442,8 @@ main() {
         append_tabbed "SEED:$seed" 2 ':' "yellow"
         addsep
         append_tabbed "ADB Serial,$DEVICE_SERIAL" 2 ','
+        append_tabbed "SoC Serial:$serial_number" 2
+        append_tabbed "TestSig:$testsig_installed" 2
         append_tabbed "Operating System:$os_description" 2
         append_tabbed "Linux Kernel:$kernel_version" 2
     endwin
@@ -414,17 +452,21 @@ main() {
         append_file /tmp/sample_qtop_adb_devices_$seed.log
     endwin
 
-    if [ "$use_minidm" = true ] ; 
-    then 
-        window "Connected mini-dm Devices" "green" "22%"
-            append_file /tmp/sample_qtop_minidm_devices_$seed.log
-            append "Connected port is $minidm_usbport" "left" "yellow"
-            addsep
-            append "mini-dm status" "center" "green"
-            addsep
-            append_file /tmp/sample_qtop_minidm_status_$seed.log
-        endwin
-    fi
+    # if [ "$use_minidm" = true ] ; 
+    # then 
+        # window "Connected mini-dm Devices" "green" "22%"
+        #     append_file /tmp/sample_qtop_minidm_devices_$seed.log
+        #     append "Connected port is $minidm_usbport" "left" "yellow"
+        #     addsep
+        #     append "mini-dm Status" "center" "green"
+        #     addsep
+        #     append_file /tmp/sample_qtop_minidm_status_$seed.log
+        # endwin
+
+        # window "mini-dm Status (usbport: $minidm_usbport)" "green" "22%"
+        #     append_file /tmp/sample_qtop_minidm_status_$seed.log
+        # endwin
+    # fi
 
     window "Top 5 Process" "green" "22%"
         for i in `seq 2 6`; do
@@ -450,32 +492,30 @@ main() {
     col_right
     move_up
 
-    window "CPU (Kyro585)" "green" "33%"
-        append_tabbed ":Current:Min:Max" 4 ':' "white"
-        append_tabbed "Prime  0:$cpu_clk_cpu0_format GHz:$cpu_clk_cpu0_min_format GHz:$cpu_clk_cpu0_max_format GHz" 4 ':' "red"
-        append_tabbed "Gold   0:$cpu_clk_cpu1_format GHz:$cpu_clk_cpu1_min_format GHz:$cpu_clk_cpu1_max_format GHz" 4 ':' "yellow"
-        append_tabbed "Gold   1:$cpu_clk_cpu2_format GHz:$cpu_clk_cpu2_min_format GHz:$cpu_clk_cpu2_max_format GHz" 4 ':' "yellow"
-        append_tabbed "Gold   2:$cpu_clk_cpu3_format GHz:$cpu_clk_cpu3_min_format GHz:$cpu_clk_cpu3_max_format GHz" 4 ':' "yellow"
-        append_tabbed "Silver 0:$cpu_clk_cpu4_format GHz:$cpu_clk_cpu4_min_format GHz:$cpu_clk_cpu4_max_format GHz" 4 ':' "cyan"
-        append_tabbed "Silver 1:$cpu_clk_cpu5_format GHz:$cpu_clk_cpu5_min_format GHz:$cpu_clk_cpu5_max_format GHz" 4 ':' "cyan"
-        append_tabbed "Silver 2:$cpu_clk_cpu6_format GHz:$cpu_clk_cpu6_min_format GHz:$cpu_clk_cpu6_max_format GHz" 4 ':' "cyan"
-        append_tabbed "Silver 3:$cpu_clk_cpu7_format GHz:$cpu_clk_cpu7_min_format GHz:$cpu_clk_cpu7_max_format GHz" 4 ':' "cyan"
+    window "CPU (Kyro585) Temp: $cpu_ss_temp" "green" "33%"
+        append_tabbed ":Current:Min:Max:Temperature" 5 ':' "white"
+        append_tabbed "Prime  0:$cpu_clk_cpu0_format GHz:$cpu_clk_cpu0_min_format GHz:$cpu_clk_cpu0_max_format GHz:$cpu_clk_cpu0_temp" 5 ':' "red"
+        append_tabbed "Gold   0:$cpu_clk_cpu1_format GHz:$cpu_clk_cpu1_min_format GHz:$cpu_clk_cpu1_max_format GHz:$cpu_clk_cpu1_temp" 5 ':' "yellow"
+        append_tabbed "Gold   1:$cpu_clk_cpu2_format GHz:$cpu_clk_cpu2_min_format GHz:$cpu_clk_cpu2_max_format GHz:$cpu_clk_cpu2_temp" 5 ':' "yellow"
+        append_tabbed "Gold   2:$cpu_clk_cpu3_format GHz:$cpu_clk_cpu3_min_format GHz:$cpu_clk_cpu3_max_format GHz:$cpu_clk_cpu3_temp" 5 ':' "yellow"
+        append_tabbed "Silver 0:$cpu_clk_cpu4_format GHz:$cpu_clk_cpu4_min_format GHz:$cpu_clk_cpu4_max_format GHz:$cpu_clk_cpu4_temp" 5 ':' "cyan"
+        append_tabbed "Silver 1:$cpu_clk_cpu5_format GHz:$cpu_clk_cpu5_min_format GHz:$cpu_clk_cpu5_max_format GHz:$cpu_clk_cpu5_temp" 5 ':' "cyan"
+        append_tabbed "Silver 2:$cpu_clk_cpu6_format GHz:$cpu_clk_cpu6_min_format GHz:$cpu_clk_cpu6_max_format GHz:$cpu_clk_cpu6_temp" 5 ':' "cyan"
+        append_tabbed "Silver 3:$cpu_clk_cpu7_format GHz:$cpu_clk_cpu7_min_format GHz:$cpu_clk_cpu7_max_format GHz:$cpu_clk_cpu7_temp" 5 ':' "cyan"
         addsep
         append "GPU (Adreno 650)" "center" "green"
-        append_tabbed ":Current:Min:Max" 4 ':' "white"
-        append_tabbed "GPU:$gpu_clk_opengl_core_curr_format MHz:$gpu_clk_opengl_core_min MHz:$gpu_clk_opengl_core_max_format MHz" 4 ':' "yellow"
+        append_tabbed ":Current:Min:Max:Temperature" 5 ':' "white"
+        append_tabbed "GPU:$gpu_clk_opengl_core_curr_format MHz:$gpu_clk_opengl_core_min MHz:$gpu_clk_opengl_core_max_format MHz:$gpu_ss_temp" 5 ':' "yellow"
         addsep
         append "Hexagon 698 DSP (V66 cDSP)" "center" "green"
-        addsep
-        append_tabbed "Core Current:SNOC Current:BIMC Current:SNoC Voted:MEMNOC Voted" 5 ':' "white"
-        append_tabbed "$cdsp_clk_core:$cdsp_clk_snoc_curr:$cdsp_clk_bimc_curr:$cdsp_clk_snoc_vote_core:$cdsp_clk_memnoc_vote" 5 ':' "yellow"
+        append_tabbed "Core Current:SNOC Current:BIMC Current:SNoC Voted:MEMNOC Voted:Temperature" 6 ':' "white"
+        append_tabbed "$cdsp_clk_core:$cdsp_clk_snoc_curr:$cdsp_clk_bimc_curr:$cdsp_clk_snoc_vote_core:$cdsp_clk_memnoc_vote:$cdsp_ss_temp" 6 ':' "yellow"
         addsep
         append "NPU (HTA230)" "center" "green"
-        addsep
-        append_tabbed ":Current:Voted" 3 ':' "white"
-        append_tabbed "Control Processor:$npu_cp_clk_curr_format Hz:$npu_cp_clk_vote_format Hz" 3 ':' "yellow"
-        append_tabbed "DATA PLAN 0:$npu_dp0_clk_curr_format MHz:$npu_dp0_clk_vote_format MHz" 3 ':' "yellow"
-        append_tabbed "DATA PLAN 1:$npu_dp1_clk_curr_format MHz:$npu_dp1_clk_vote_format MHz" 3 ':' "yellow"
+        append_tabbed ":Current:Voted:Temperature" 4 ':' "white"
+        append_tabbed "Control Processor:$npu_cp_clk_curr_format Hz:$npu_cp_clk_vote_format Hz:$npu_ss_temp" 4 ':' "yellow"
+        append_tabbed "DATA PLAN 0:$npu_dp0_clk_curr_format MHz:$npu_dp0_clk_vote_format MHz" 4 ':' "yellow"
+        append_tabbed "DATA PLAN 1:$npu_dp1_clk_curr_format MHz:$npu_dp1_clk_vote_format MHz" 4 ':' "yellow"
 
         append_tabbed "DSP Bus:AXI:AHBM:AHBS" 4
         append_tabbed ":$npu_dsp_axi_curr_format MHz:$npu_dsp_ahbm_curr_format MHz:$npu_dsp_ahbs_curr_format MHz" 4 ':' "yellow"
@@ -516,7 +556,11 @@ main() {
 
     if [ "$use_minidm" = true ] ;
     then
-        window "mini-dm messages [/tmp/sample_qtop_minidm_log_lines_$seed.log]" "green" "45%"
+        window "mini-dm Status (usbport: $minidm_usbport)" "green" "45%"
+            append_file /tmp/sample_qtop_minidm_status_$seed.log
+            addsep
+            append "mini-dm messages [/tmp/sample_qtop_minidm_log_lines_$seed.log]" "center" "green"
+            addsep
             append_file /tmp/sample_qtop_minidm_log_lines_$seed.log
         endwin
     fi
