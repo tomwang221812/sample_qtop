@@ -7,7 +7,7 @@ A sample tool to monitor RB5 and RB6 device with Linux Ubuntu Opertaing system t
 # Feature
 - [ ] TODO
 
-# Requriment
+# Requirement
   - Ubuntu Host
   - Hexagon SDK 4.5.0.3 under `$HOME/Qualcomm/Hexagon_SDK`
     - sysMonAppLE_64bit must be pushed to device under `/data/sysMonApp`
