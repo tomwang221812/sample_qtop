@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # sample_qtop
 A sample tool to monitor RB5 and RB6 device with Linux Ubuntu Opertaing system through adb
 
@@ -64,4 +63,3 @@ adb -s ${YOUR_DEVICE_SERIAL} wait-for-device root
 adb connect ${DEVICE_IP}:5555
 adb -s ${DEVICE_IP}:5555 shell echo 'Hello World!'
 ```
->>>>>>> e50c8ecbe87265a108ae691ccbc62dd148295f07
